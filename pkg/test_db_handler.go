@@ -11,19 +11,17 @@ import (
 )
 
 type TestDBHandler[Schema any] struct {
-	ctx    context.Context //nolint:containedctx // field avoid unnecessary duplication
 	dbConn bun.IDB
 }
 
-func NewTestDBHandler[Schema any](ctx context.Context, dbConn bun.IDB) *TestDBHandler[Schema] {
+func NewTestDBHandler[Schema any](dbConn bun.IDB) *TestDBHandler[Schema] {
 	return &TestDBHandler[Schema]{
-		ctx:    ctx,
 		dbConn: dbConn,
 	}
 }
 
-func (h *TestDBHandler[Schema]) SeedTable(schemaWithData Schema) {
-	if _, err := h.dbConn.NewInsert().Model(&schemaWithData).Exec(h.ctx); err != nil {
+func (h *TestDBHandler[Schema]) SeedTable(ctx context.Context, schemaWithData Schema) {
+	if _, err := h.dbConn.NewInsert().Model(&schemaWithData).Exec(ctx); err != nil {
 		panic(err)
 	}
 }
@@ -32,7 +30,7 @@ func (h *TestDBHandler[Schema]) AssertCountInTable(t *testing.T, size int, field
 	t.Helper()
 
 	var entries []Schema
-	err := h.buildWhere(field).Scan(h.ctx, &entries)
+	err := h.buildWhere(field).Scan(context.Background(), &entries)
 
 	if size == 0 {
 		assert.Error(t, err, sql.ErrNoRows)
@@ -49,7 +47,7 @@ func (h *TestDBHandler[Schema]) AssertInTable(t *testing.T, expectedFields map[s
 	t.Helper()
 
 	var schema Schema
-	err := h.buildWhere(expectedFields).Scan(h.ctx, &schema)
+	err := h.buildWhere(expectedFields).Scan(context.Background(), &schema)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, schema)

@@ -18,6 +18,6 @@ func NewBananaAdapter(db bun.IDB) *BananaAdapter {
 }
 
 func (a *BananaAdapter) CreateBanana(ctx context.Context, b *entity.Banana) error {
-	_, err := a.db.NewInsert().Model(&b).Exec(ctx)
+	_, err := a.db.NewInsert().Model(b).Exec(ctx)
 	return err
 }

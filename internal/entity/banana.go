@@ -1,12 +1,16 @@
 package entity
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/uptrace/bun"
+)
 
 type Banana struct {
-	ID     uuid.UUID
-	Name   string
-	Color  string
-	Weight int
+	bun.BaseModel `bun:"table:bananas,alias:b"`
+	ID            uuid.UUID `bun:"type:uuid,pk"`
+	Name          string    `bun:"type:text"`
+	Color         string    `bun:"type:text"`
+	Weight        int       `bun:"type:integer,nullzero"`
 }
 
 func (b *Banana) SetUUID() {

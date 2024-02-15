@@ -8,9 +8,7 @@ import (
 	"net/http/httptest"
 )
 
-type Helper struct{}
-
-func (Helper) Request(method, uri string, reqBody []byte) *http.Response {
+func Request(method, uri string, reqBody []byte) *http.Response {
 	req := createRequest(method, uri, reqBody)
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -23,14 +21,14 @@ func (Helper) Request(method, uri string, reqBody []byte) *http.Response {
 }
 
 func createRequest(method, uri string, reqBody []byte) *http.Request {
-	req := httptest.NewRequest(method, "http://localhost:9200"+uri, bytes.NewBuffer(reqBody))
+	req := httptest.NewRequest(method, "http://localhost:8080"+uri, bytes.NewBuffer(reqBody))
 	req.RequestURI = ""
 	req.Header.Set("Content-Type", "application/json")
 
 	return req
 }
 
-func (Helper) DecodeBody(resp *http.Response, dto interface{}) error {
+func DecodeBody(resp *http.Response, dto interface{}) error {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
