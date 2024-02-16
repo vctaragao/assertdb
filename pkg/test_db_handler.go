@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,17 +12,38 @@ import (
 )
 
 type TestDBHandler[Schema any] struct {
-	dbConn bun.IDB
+	dbConn *sql.Tx
 }
 
-func NewTestDBHandler[Schema any](dbConn bun.IDB) *TestDBHandler[Schema] {
+func NewTestDBHandler[Schema any](dbConn *sql.Tx) *TestDBHandler[Schema] {
 	return &TestDBHandler[Schema]{
 		dbConn: dbConn,
 	}
 }
 
 func (h *TestDBHandler[Schema]) SeedTable(ctx context.Context, schemaWithData Schema) {
-	if _, err := h.dbConn.NewInsert().Model(&schemaWithData).Exec(ctx); err != nil {
+	//if _, err := h.dbConn.NewInsert().Model(&schemaWithData).Exec(ctx); err != nil {
+	//	panic(err)
+	//}
+
+	schemaElem := reflect.ValueOf(schemaWithData).Elem()
+	schemaType := reflect.TypeOf(schemaWithData)
+
+	numfields := schemaType.NumField()
+
+	fields := make([]any, 0, numfields)
+	fieldValues := make([]any, 0, numfields)
+
+	for i := 0; i < numfields; i++ {
+		fields = append(fields, schemaType.Field(i).Name)
+		fieldValues = append(fields, schemaElem.Field(i).Interface())
+	}
+
+	// TODO: parse the fields and fiedlValues into the query
+	query := "INSERT INTO table_name (field1, field2) VALUES ($1, $2)"
+	_, err := h.dbConn.ExecContext(ctx, query, fields...)
+
+	if err != nil {
 		panic(err)
 	}
 }
