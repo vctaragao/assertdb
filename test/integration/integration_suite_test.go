@@ -22,8 +22,7 @@ type IntegrationSuite struct {
 }
 
 func (s *IntegrationSuite) SetupSuite() {
-	s.initDB()
-	s.initApp()
+	s.initApp(s.initDB())
 }
 
 func (s *IntegrationSuite) TearDownSuite() {
@@ -36,17 +35,18 @@ func (s *IntegrationSuite) TearDownTest() {
 	}
 }
 
-func (s *IntegrationSuite) initDB() {
+func (s *IntegrationSuite) initDB() *bun.DB {
 	dbConn := database.Connect()
 	if err := database.Migrate(dbConn); err != nil {
 		log.Fatal(err)
 	}
 
 	s.dbConn = s.NewTestSuiteDbConn(context.Background(), dbConn)
+	return dbConn
 }
 
-func (s *IntegrationSuite) initApp() {
-	bananaAdapter := database.NewBananaAdapter(s.dbConn.DbTx)
+func (s *IntegrationSuite) initApp(db *bun.DB) {
+	bananaAdapter := database.NewBananaAdapter(db)
 	createService := internal.NewCreateBananaService(bananaAdapter)
 
 	mux := http.NewServeMux()
@@ -108,7 +108,7 @@ func (s *IntegrationSuite) closeApp() {
 }
 
 func (s *IntegrationSuite) NewTestSuiteDbConn(ctx context.Context, dbConn *bun.DB) pkg.DBConnection {
-	conn := pkg.DBConnection{DbConn: dbConn}
+	conn := pkg.DBConnection{DbConn: dbConn.DB}
 	conn.BeginTx(ctx)
 
 	return conn

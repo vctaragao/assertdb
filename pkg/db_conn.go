@@ -2,14 +2,13 @@ package pkg
 
 import (
 	"context"
+	"database/sql"
 	"log"
-
-	"github.com/uptrace/bun"
 )
 
 type DBConnection struct {
-	DbConn *bun.DB
-	DbTx   *bun.Tx
+	DbConn *sql.DB
+	DbTx   *sql.Tx
 }
 
 func (db *DBConnection) Rollback() {
@@ -24,7 +23,7 @@ func (db *DBConnection) BeginTx(ctx context.Context) {
 		panic(err)
 	}
 
-	db.DbTx = &tx
+	db.DbTx = tx
 }
 
 func (db *DBConnection) Close() error {
